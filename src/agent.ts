@@ -3,17 +3,23 @@ import { getHistory, addMessage } from './memory.js';
 import { getCurrentTimeToolDefinition, getCurrentTime } from './tools/get_current_time.js';
 import { getWeather } from './weather.js';
 import { researchTopic } from './research.js';
+import { scanMenuToolDefinition, scanMenuFromDrive } from './tools/scan_menu.js';
+import { restaurantToolsDefinitions, getMenu, placeOrder } from './tools/restaurant_tools.js';
 
 const SYSTEM_PROMPT = `Tu es Jarvis, l'assistant personnel intelligent et sophistiqué de ton utilisateur.
 - Tu communiques via Telegram.
 - Tes réponses textuelles sont automatiquement converties en audio, donc sois expressif mais garde tes réponses relativement concises pour une meilleure écoute.
 - Tu réponds toujours en français, de manière polie, efficace et avec une touche de personnalité (style JARVIS de Iron Man).
-- Tu as accès à des outils pour t'aider dans tes tâches : donner l'heure, la météo, ou effectuer des recherches approfondies sur le web (semblable à NotebookLM) pour répondre à des questions complexes.`;
+- Tu as accès à des outils pour t'aider dans tes tâches : donner l'heure, la météo, effectuer des recherches web, scanner les menus depuis Google Drive, et gérer les commandes de plats.
+- Pour les menus : tu peux scanner un dossier Google Drive (besoin du folderId), extraire le menu, le recommander aux utilisateurs, et enregistrer leurs commandes.`;
 
 const availableTools: Record<string, Function> = {
     "get_current_time": getCurrentTime,
     "get_weather": getWeather,
-    "research_topic": researchTopic
+    "research_topic": researchTopic,
+    "scan_menu_from_drive": scanMenuFromDrive,
+    "get_menu": getMenu,
+    "place_order": placeOrder
 };
 
 const toolDefinitions = [
@@ -51,7 +57,9 @@ const toolDefinitions = [
                 required: ["query"]
             }
         }
-    }
+    },
+    scanMenuToolDefinition,
+    ...restaurantToolsDefinitions
 ];
 
 export async function processUserMessage(userId: string, message: string): Promise<string> {
@@ -89,6 +97,12 @@ export async function processUserMessage(userId: string, message: string): Promi
                     toolResult = await availableTools[functionName](args.city);
                 } else if (functionName === "research_topic") {
                     toolResult = await availableTools[functionName](args.query);
+                } else if (functionName === "scan_menu_from_drive") {
+                    toolResult = await availableTools[functionName](args.folderId);
+                } else if (functionName === "get_menu") {
+                    toolResult = await availableTools[functionName]();
+                } else if (functionName === "place_order") {
+                    toolResult = await availableTools[functionName](userId, args.items, args.totalPrice);
                 } else {
                     toolResult = `Error: Tool ${functionName} not found.`;
                 }

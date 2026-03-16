@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import https from 'https';
+import { scanMenuFromDrive } from './tools/scan_menu.js';
 
 export const bot = new Bot(config.TELEGRAM_BOT_TOKEN);
 
@@ -59,7 +60,9 @@ bot.command('start', async (ctx) => {
         `/start — Message d'accueil\n` +
         `/history — Voir les derniers messages\n` +
         `/stats — Statistiques de la conversation\n` +
+        `/sync — Synchroniser le menu depuis Drive\n` +
         `/clear — Effacer la mémoire\n\n` +
+        `Tu peux aussi me demander : "Quel est le menu ?" ou "Je voudrais commander un plat".\n\n` +
         `Comment puis-je t'aider aujourd'hui ?`,
         { parse_mode: 'Markdown' }
     );
@@ -102,6 +105,21 @@ bot.command('history', async (ctx) => {
 
     const fullText = lines.join('\n');
     await ctx.reply(fullText.substring(0, 4000), { parse_mode: 'Markdown' });
+});
+
+bot.command('sync', async (ctx) => {
+    const userId = ctx.from?.id.toString();
+    if (!userId) return;
+
+    await ctx.replyWithChatAction('typing');
+    await ctx.reply('🔄 Synchronisation avec Google Drive en cours...');
+
+    try {
+        const result = await scanMenuFromDrive(config.MENU_FOLDER_ID);
+        await ctx.reply(result, { parse_mode: 'Markdown' });
+    } catch (error: any) {
+        await ctx.reply(`⚠️ Erreur de synchronisation : ${error.message}`);
+    }
 });
 
 bot.command('stats', async (ctx) => {

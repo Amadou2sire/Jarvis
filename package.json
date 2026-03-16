@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^6.4.0",
+    "@google-cloud/vision": "^5.3.4",
     "@grammyjs/types": "^3.12.0",
     "@speechify/api": "^1.0.1",
     "@speechify/api-sdk": "^2.5.4",
@@ -24,6 +25,7 @@
     "firebase-admin": "^13.7.0",
     "firebase-functions": "^7.1.1",
     "google-tts-api": "^2.0.2",
+    "googleapis": "^171.4.0",
     "grammy": "^1.30.0",
     "groq-sdk": "^0.7.0"
   },

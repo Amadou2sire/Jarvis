@@ -2,15 +2,29 @@ import { bot } from './bot.js';
 import * as functions from 'firebase-functions';
 import { webhookCallback } from 'grammy';
 import express from 'express';
+import { scanMenuFromDrive } from './tools/scan_menu.js';
+import { config } from './config.js';
 
 // ─── Cloud Functions Setup ──────────────────────────────────────────────────
 
 export const jarvis = functions.https.onRequest((req, res) => {
-    // On n'initialise le middleware webhook que lors d'une vraie requête Cloud
     const server = express();
     server.use(express.json());
     server.post('/telegram', webhookCallback(bot, 'express'));
     return server(req, res);
+});
+
+import { onSchedule } from 'firebase-functions/v2/scheduler';
+
+// Scheduled task: Sync menu from Drive every hour
+export const syncMenu = onSchedule('every 1 hours', async (event) => {
+    console.log('[Sync] Starting scheduled menu sync...');
+    if (config.MENU_FOLDER_ID) {
+        const result = await scanMenuFromDrive(config.MENU_FOLDER_ID);
+        console.log(`[Sync] Result: ${result}`);
+    } else {
+        console.warn('[Sync] No MENU_FOLDER_ID configured.');
+    }
 });
 
 // ─── Support pour le développement local (Long Polling) ─────────────────────

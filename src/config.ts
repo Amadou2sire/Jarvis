@@ -14,6 +14,7 @@ export const config = {
     TAVILY_API_KEY: process.env.TAVILY_API_KEY || '',
     SERPAPI_API_KEY: process.env.SERPAPI_API_KEY || '',
     GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS || './service-account.json',
+    MENU_FOLDER_ID: process.env.MENU_FOLDER_ID || '',
 };
 
 if (!config.TELEGRAM_BOT_TOKEN) throw new Error("Missing TELEGRAM_BOT_TOKEN");

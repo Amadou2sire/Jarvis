@@ -1,5 +1,6 @@
 import { bot } from './bot.js';
-import * as functions from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { webhookCallback } from 'grammy';
 import express from 'express';
 import { scanMenuFromDrive } from './tools/scan_menu.js';
@@ -7,17 +8,29 @@ import { config } from './config.js';
 
 // ─── Cloud Functions Setup ──────────────────────────────────────────────────
 
-export const jarvis = functions.https.onRequest((req, res) => {
+const JARVIS_SECRETS = [
+    'TELEGRAM_BOT_TOKEN',
+    'GROQ_API_KEY',
+    'OPENROUTER_API_KEY',
+    'ELEVENLABS_API_KEY',
+    'SPEECHIFY_API_KEY',
+    'OPENWEATHERMAP_API_KEY',
+    'TAVILY_API_KEY',
+    'SERPAPI_API_KEY'
+];
+
+export const jarvis = onRequest({ secrets: JARVIS_SECRETS }, (req, res) => {
     const server = express();
     server.use(express.json());
     server.post('/telegram', webhookCallback(bot, 'express'));
     return server(req, res);
 });
 
-import { onSchedule } from 'firebase-functions/v2/scheduler';
-
 // Scheduled task: Sync menu from Drive every hour
-export const syncMenu = onSchedule('every 1 hours', async (event) => {
+export const syncMenu = onSchedule({
+    schedule: 'every 1 hours',
+    secrets: JARVIS_SECRETS
+}, async (event) => {
     console.log('[Sync] Starting scheduled menu sync...');
     if (config.MENU_FOLDER_ID) {
         const result = await scanMenuFromDrive(config.MENU_FOLDER_ID);

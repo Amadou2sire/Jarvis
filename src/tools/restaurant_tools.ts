@@ -1,4 +1,4 @@
-import { createOrder, getUserOrders, getLatestMenu } from '../restaurant.ts';
+import { createOrder, getUserOrders, getLatestMenu } from '../restaurant.js';
 
 export const restaurantToolsDefinitions = [
     {

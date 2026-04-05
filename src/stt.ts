@@ -1,5 +1,5 @@
 import fs from 'fs';
-import Groq from 'groq-sdk';
+import { Groq } from 'groq-sdk';
 import { config } from './config.js';
 
 const groq = new Groq({

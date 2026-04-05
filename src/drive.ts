@@ -1,11 +1,8 @@
 import { google } from 'googleapis';
-import { config } from './config.js';
+import { getGoogleAuth } from './auth.js';
 import fs from 'fs';
 
-const auth = new google.auth.GoogleAuth({
-    keyFile: config.GOOGLE_APPLICATION_CREDENTIALS,
-    scopes: ['https://www.googleapis.com/auth/drive.readonly'],
-});
+const auth = getGoogleAuth(['https://www.googleapis.com/auth/drive.readonly']);
 
 const drive = google.drive({ version: 'v3', auth });
 

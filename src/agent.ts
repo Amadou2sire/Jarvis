@@ -5,13 +5,16 @@ import { getWeather } from './weather.js';
 import { researchTopic } from './research.js';
 import { scanMenuToolDefinition, scanMenuFromDrive } from './tools/scan_menu.js';
 import { restaurantToolsDefinitions, getMenu, placeOrder } from './tools/restaurant_tools.js';
+import { financeToolsDefinitions, getFinancialStatus, addFinancialExpense } from './tools/finance_tools.js';
 
 const SYSTEM_PROMPT = `Tu es Jarvis, l'assistant personnel intelligent et sophistiqué de ton utilisateur.
 - Tu communiques via Telegram.
 - Tes réponses textuelles sont automatiquement converties en audio, donc sois expressif mais garde tes réponses relativement concises pour une meilleure écoute.
 - Tu réponds toujours en français, de manière polie, efficace et avec une touche de personnalité (style JARVIS de Iron Man).
-- Tu as accès à des outils pour t'aider dans tes tâches : donner l'heure, la météo, effectuer des recherches web, scanner les menus depuis Google Drive, et gérer les commandes de plats.
-- Pour les menus : tu peux scanner un dossier Google Drive (besoin du folderId), extraire le menu, le recommander aux utilisateurs, et enregistrer leurs commandes.`;
+- Tu as accès à des outils pour t'aider dans tes tâches : donner l'heure, la météo, effectuer des recherches web, scanner les menus, gérer les commandes, et agir en tant que gestionnaire financier.
+- Pour les menus : tu peux scanner un dossier Google Drive, extraire le menu, le recommander aux utilisateurs, et enregistrer leurs commandes.
+- RÔLE FINANCIER : L'utilisateur te demande parfois s'il peut s'offrir quelque chose ou veut enregistrer une action financière. Dans ce cas, utilise \`get_financial_status\` pour consulter son budget mensuel. Si l'utilisateur confirme un achat, utilise \`add_financial_expense\` pour enregistrer la dépense (invente une catégorie logique si besoin, comme 'Technologie', ou utilise une catégorie existante).
+- CONTRAINTE DE TEMPS STRICTE : Pour des raisons techniques d'optimisation vocale, tes réponses doivent toujours être EXTRÊMEMENT CONCISES (2 à 3 phrases maximum, environ 30-40 mots). Ne fais jamais de longs discours. Va droit au but.`;
 
 const availableTools: Record<string, Function> = {
     "get_current_time": getCurrentTime,
@@ -19,7 +22,9 @@ const availableTools: Record<string, Function> = {
     "research_topic": researchTopic,
     "scan_menu_from_drive": scanMenuFromDrive,
     "get_menu": getMenu,
-    "place_order": placeOrder
+    "place_order": placeOrder,
+    "get_financial_status": getFinancialStatus,
+    "add_financial_expense": addFinancialExpense
 };
 
 const toolDefinitions = [
@@ -59,7 +64,8 @@ const toolDefinitions = [
         }
     },
     scanMenuToolDefinition,
-    ...restaurantToolsDefinitions
+    ...restaurantToolsDefinitions,
+    ...financeToolsDefinitions
 ];
 
 export async function processUserMessage(userId: string, message: string): Promise<string> {
@@ -103,6 +109,10 @@ export async function processUserMessage(userId: string, message: string): Promi
                     toolResult = await availableTools[functionName]();
                 } else if (functionName === "place_order") {
                     toolResult = await availableTools[functionName](userId, args.items, args.totalPrice);
+                } else if (functionName === "get_financial_status") {
+                    toolResult = await availableTools[functionName](args.month);
+                } else if (functionName === "add_financial_expense") {
+                    toolResult = await availableTools[functionName](args.month, args.category, args.amount);
                 } else {
                     toolResult = `Error: Tool ${functionName} not found.`;
                 }

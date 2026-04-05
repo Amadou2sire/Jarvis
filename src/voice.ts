@@ -5,10 +5,15 @@ import { tmpdir } from 'os';
 import * as googleTTS from 'google-tts-api';
 import { TextToSpeechClient } from '@google-cloud/text-to-speech';
 import { SpeechifyClient } from '@speechify/api';
+import { getGoogleCredentialsData } from './auth.js';
 
-// Check if credentials file exists
-const hasGoogleCreds = fs.existsSync(config.GOOGLE_APPLICATION_CREDENTIALS);
-const client = hasGoogleCreds ? new TextToSpeechClient() : null;
+let client: TextToSpeechClient | null = null;
+try {
+    const credData = getGoogleCredentialsData();
+    client = new TextToSpeechClient({ credentials: credData });
+} catch (e) {
+    console.warn("No Google credentials, Google Cloud TTS will be disabled.");
+}
 
 // Speechify Client
 // Note: SDK uses 'token' instead of 'apiKey'

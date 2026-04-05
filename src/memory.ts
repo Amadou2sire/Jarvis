@@ -1,22 +1,12 @@
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { initializeApp, getApps } from 'firebase-admin/app';
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
-import { config } from './config.js';
-import { readFileSync, existsSync } from 'fs';
+import { getFirebaseAdminCert } from './auth.js';
 
 // ─── Firebase Admin Initialization ────────────────────────────────────────────
 
 function initFirebase() {
     if (getApps().length === 0) {
-        if (!existsSync(config.GOOGLE_APPLICATION_CREDENTIALS)) {
-            throw new Error(
-                `Firebase service account not found at: ${config.GOOGLE_APPLICATION_CREDENTIALS}\n` +
-                `Please download it from Firebase Console > Project Settings > Service Accounts.`
-            );
-        }
-        const serviceAccount = JSON.parse(
-            readFileSync(config.GOOGLE_APPLICATION_CREDENTIALS, 'utf-8')
-        );
-        initializeApp({ credential: cert(serviceAccount) });
+        initializeApp({ credential: getFirebaseAdminCert() });
     }
     return getFirestore();
 }
